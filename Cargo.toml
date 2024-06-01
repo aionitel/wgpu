@@ -1,0 +1,10 @@
+[package]
+name = "wgpu"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+winit = { version = "*", features = ["rwh_05"] }
+env_logger = "*"
+log = "*"
+wgpu = "*"
