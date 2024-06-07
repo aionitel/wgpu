@@ -11,22 +11,17 @@ fn main() {
     run();
 }
 
-// Tells wasm-bindgen to run our run function once WASM is loaded.
+// Tells wasm-bindgen to run if on WASM.
 #[cfg_attr(target_arch="wasm32", wasm_bindgen(start))]
 pub fn run() {
-    cfg_if::cfg_if! {
-        if #[cfg(target_arch = "wasm32")] {
-            std::panic::set_hook(Box::new(console_error_panic_hook::hook));
-            console_log::init_with_level(log::Level::Debug)
-                .expect("Couldn't initialize logger");
-        } else {
-            env_logger::init(); // When wgpu panics it throws a generic error, while logging the real error via the log crate.
-        }
-    }
+    std::panic::set_hook(Box::new(console_error_panic_hook::hook));
+    error!("Console logging?");
+    env_logger::init(); // When wgpu panics it throws a generic error, while logging the real error via the log crate.
 
     // TODO: Get rid of these ugly unwraps.
     let event_loop = EventLoop::new().unwrap();
     let window = WindowBuilder::new().build(&event_loop).unwrap();
+    window.set_title("Untitled Game");
 
     // Simple event loop that will exit on esc key press.
     event_loop.run(move |event, control_flow| match event {
@@ -51,10 +46,9 @@ pub fn run() {
 
     // Open window on the web.
     #[cfg(target_arch="wasm32")] {
-        // Winit prevents sizing with CSS, so we have to set
-        // the size manually when on web.
+        // Winit prevents sizing with CSS, so we have to set the size manually when on web.
         use winit::dpi::PhysicalSize;
-        let _ = window.request_inner_size(PhysicalSize::new(450, 400));
+        let _ = window.request_inner_size(PhysicalSize::new(400, 400)); // Request a new size for the window.
 
         use winit::platform::web::WindowExtWebSys;
         web_sys::window()
