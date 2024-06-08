@@ -8,15 +8,49 @@ use winit::{
 use wasm_bindgen::prelude::*;
 
 fn main() {
-    run();
+    cfg_if::cfg_if! {
+        if #[cfg(target_arch="wasm32")] {
+            run_wasm();
+        } else {
+            run();
+        }
+    }
 }
 
-// Tells wasm-bindgen to run if on WASM.
-#[cfg_attr(target_arch="wasm32", wasm_bindgen(start))]
 pub fn run() {
-    std::panic::set_hook(Box::new(console_error_panic_hook::hook));
-    error!("Console logging?");
     env_logger::init(); // When wgpu panics it throws a generic error, while logging the real error via the log crate.
+
+    // TODO: Get rid of these ugly unwraps.
+    let event_loop = EventLoop::new().unwrap();
+    let window = WindowBuilder::new().build(&event_loop).unwrap();
+    window.set_title("Untitled Game");
+
+    // Simple event loop that will exit on esc key press.
+    event_loop.run(move |event, control_flow| match event {
+        Event::WindowEvent {
+            ref event,
+            window_id,
+        } if window_id == window.id() => match event {
+            WindowEvent::CloseRequested
+            | WindowEvent::KeyboardInput {
+                event:
+                    KeyEvent {
+                        state: ElementState::Pressed,
+                        physical_key: PhysicalKey::Code(KeyCode::Escape),
+                        ..
+                    },
+                ..
+            } => control_flow.exit(),
+            _ => {}
+        },
+        _ => {}
+    });
+}
+
+#[cfg(target_arch="wasm32")]
+#[cfg_attr(target_arch="wasm32", wasm_bindgen(start))]
+pub fn run_wasm() {
+    console_log::init();
 
     // TODO: Get rid of these ugly unwraps.
     let event_loop = EventLoop::new().unwrap();
